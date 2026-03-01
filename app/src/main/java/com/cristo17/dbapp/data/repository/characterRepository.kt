@@ -21,10 +21,9 @@ class CharacterRepository {
         }
 
         val extraCharacters = getExtraCharacters().filter { extra ->
-            apiCharacters.none { it.name.lowercase().contains(extra.name.lowercase()) }
+            apiCharacters.none { it.name.lowercase() == extra.name.lowercase() }
         }
 
-        // Combinamos y aseguramos los 100 exactos
         return (apiCharacters + extraCharacters).sortedBy { it.id }.take(100)
     }
 
@@ -65,12 +64,12 @@ class CharacterRepository {
             CharacterItem(1011, "Baby Vegeta", "1.200.000.000", "Tsuru-jin", "${prefix}c/c1/Baby_Vegeta_GT_Art.png${suffix}"),
             CharacterItem(1012, "Bardock SSJ", "1.000.000", "Saiya-jin", "${prefix}3/3a/Bardock_SSJ_Art.png${suffix}"),
             CharacterItem(1013, "Turles", "30.000", "Saiya-jin", "${prefix}9/93/Turles_Art.png${suffix}"),
-            CharacterItem(1014, "Moro", "10.000.000.000", "Mago", "${prefix}c/c0/Moro_Art.png${suffix}"),
-            CharacterItem(1015, "Granolah", "15.000.000.000", "Cerealense", "${prefix}e/e0/Granolah_Art.png${suffix}"),
+            CharacterItem(1014, "Moro", "10.000.000.000.000", "Mago", "${prefix}c/c0/Moro_Art.png${suffix}"),
+            CharacterItem(1015, "Granolah", "15.000.000.000.000", "Cerealense", "${prefix}e/e0/Granolah_Art.png${suffix}"),
             CharacterItem(1016, "Toppo", "3.500.000.000", "Hakaishin", "${prefix}3/3e/Toppo_DBS_Art.png${suffix}"),
             CharacterItem(1017, "Dyspo", "2.800.000.000", "Raza de Dyspo", "${prefix}d/da/Dyspo_DBS_Art.png${suffix}"),
             CharacterItem(1018, "Kefla", "4.500.000.000", "Saiya-jin", "${prefix}a/ab/Kefla_SSJ2_Art.png${suffix}"),
-            CharacterItem(1019, "Goku Black", "3.800.000.000", "Saiya-jin/Dios", "${prefix}d/d1/Goku_Black_Rose_Art.png${suffix}"),
+            CharacterItem(1019, "Goku Black Rose", "3.800.000.000", "Saiya-jin/Dios", "${prefix}d/d1/Goku_Black_Rose_Art.png${suffix}"),
             CharacterItem(1020, "Metal Cooler", "2.000.000.000", "Raza de Freezer", "${prefix}4/4d/Metal_Cooler_Art.png${suffix}"),
             CharacterItem(1021, "Broly (LSSJ)", "2.500.000.000", "Saiya-jin Legendario", "${prefix}d/da/Broly_LSSJ_Art.png${suffix}"),
             CharacterItem(1022, "Hirudegarn", "3.000.000.000", "Monstruo", "${prefix}4/44/Hirudegarn_Art.png${suffix}"),
@@ -111,15 +110,57 @@ class CharacterRepository {
             id = extra.id,
             name = extra.name,
             ki = extra.ki,
-            maxKi = String.format(Locale.GERMANY, "%,d", (extra.ki.replace(".", "").toLongOrNull() ?: 0) * 2),
+            maxKi = formatNumber(calculateMaxKiLong(extra.ki)),
             race = extra.race,
             gender = "Masculino",
-            description = "Guerrero legendario extraído de los archivos de Cristo17.",
+            description = getExtraDescription(extra.name),
             imageUrl = extra.imageUrl,
             affiliation = "Guerreros Legendarios",
             originPlanet = "Desconocido",
             abilities = getAbilities(extra.name)
         )
+    }
+
+    private fun getExtraDescription(name: String): String {
+        return when (name.lowercase()) {
+            "hatchiyack" -> "Una máquina de odio creada por el Dr. Lychee, el último de los Tsufuru, para exterminar a la raza Saiya-jin. Hatchiyack es capaz de materializarse y posee un poder que supera al de los Guerreros Z en su momento."
+            "goku ssj4" -> "La transformación definitiva de Goku en Dragon Ball GT. Al dominar el estado del Ozaru Dorado, Goku logra esta forma que combina la ferocidad de la bestia con el razonamiento humano."
+            "vegeta ssj4" -> "Vegeta alcanza este estado gracias a la máquina de rayos Blutz de Bulma. Al igual que Goku, representa la unión perfecta del poder Saiya-jin primitivo y la conciencia guerrera."
+            "gogeta ssj4" -> "La fusión más poderosa de Dragon Ball GT. Gogeta nace de la unión de Goku y Vegeta en SSJ4. Su poder es tan inmenso que su simple presencia hace temblar las dimensiones, aunque su tiempo es muy limitado."
+            "janemba" -> "Un demonio de pura maldad pura nacido de la energía negativa acumulada de los villanos del infierno. En su forma final, es capaz de manipular la realidad y el espacio-tiempo."
+            "cooler" -> "El hermano mayor de Freezer. Al contrario que su hermano, Cooler entrenó su cuerpo hasta alcanzar una quinta transformación que supera el poder base de un Super Saiya-jin."
+            "gohan beast" -> "La forma despertada de Gohan durante la batalla contra Cell Max. Este estado representa la evolución final del potencial oculto de Gohan, manifestando un Ki salvaje y devastador."
+            "gogeta blue" -> "La fusión mediante la danza de Goku y Vegeta bajo el poder del Super Saiya-jin Blue. Gogeta aparece para enfrentar a Broly, demostrando un dominio total de la batalla y una velocidad inalcanzable."
+            "moro" -> "Un antiguo mago que absorbe la energía vital de planetas enteros. Después de escapar de la prisión galáctica, recuperó su juventud y puso en jaque a todo el universo con su magia devoradora."
+            "granolah" -> "El último superviviente de la raza Cerealense. Granolah utilizó las Esferas del Dragón de su planeta para convertirse en el guerrero más fuerte del universo a cambio de su propia vida."
+            "orange piccolo" -> "La transformación que Piccolo obtuvo al pedirle a Shenron que liberara su potencial oculto. Shenron le dio un 'regalo extra' permitiéndole alcanzar esta forma gigante y poderosa."
+            "broly (lssj)" -> "El Super Saiya-jin Legendario cuya furia no tiene límites. Broly nació con un poder de pelea de 10.000 y su Ki aumenta constantemente mientras lucha, convirtiéndolo en una máquina de destrucción."
+            "omega shenron" -> "El más poderoso de los Dragones Malignos, nacido de la energía negativa de los deseos egoístas. Tras absorber las 7 esferas, Omega Shenron posee el poder de todos los elementos."
+            "goku black rose" -> "La versión del Super Saiya-jin Blue alcanzada por Zamasu en el cuerpo de Goku. El color rosado representa el Ki de un dios imbuido en un cuerpo Saiya-jin."
+            "zamasu fusion" -> "La unión eterna de Zamasu y Goku Black mediante los pendientes Pothala. Su poder es infinito y su cuerpo es inmortal, presentándose como el 'Dios Absoluto' que purificaría el universo."
+            "toppo" -> "El líder de las Tropas del Orgullo del Universo 11 y candidato a Dios de la Destrucción. En el Torneo del Poder, Toppo decide abandonar sus ideales para usar el poder del Hakai."
+            "uub" -> "La reencarnación humana de Majin Buu. Entrenado por Goku, Uub posee un potencial infinito y fue capaz de fusionarse con Majin Buu gordo para convertirse en Majuub."
+            "bardock ssj" -> "El padre de Goku que, tras sobrevivir a la explosión del planeta Vegeta y viajar al pasado, alcanzó la forma de Super Saiya-jin para derrotar a Chilled, iniciando la leyenda."
+            "raditz" -> "El hermano mayor de Goku y el primer guerrero Saiya-jin en llegar a la Tierra en la era Z. Su llegada reveló el origen extraterrestre de Kakarotto."
+            "nappa" -> "El compañero de Vegeta y un guerrero Saiya-jin de clase alta. Es conocido por su fuerza bruta y por causar estragos entre los Guerreros Z en su llegada a la Tierra."
+            "cell max" -> "Una versión mejorada y gigantesca de Cell creada por el Dr. Hedo. Aunque carece de la inteligencia del original, su fuerza es tan masiva que requirió el despertar de Gohan Beast para ser derrotado."
+            "vegeta ultra ego" -> "La técnica definitiva de Vegeta aprendida de Beerus. A diferencia del Ultra Instinto, el Ultra Ego se fortalece a medida que el usuario recibe daño y se sumerge en el instinto de lucha."
+            "goku mui" -> "El estado completo del Ultra Instinto Dominado. Goku alcanza esta forma donde su cuerpo reacciona de manera autónoma ante cualquier peligro, logrando una defensa y ataque perfectos."
+            else -> "Guerrero legendario extraído de los archivos de la Wiki. Posee habilidades únicas y un nivel de poder extraordinario que ha sido clave en las batallas más importantes del universo Dragon Ball."
+        }
+    }
+
+    private fun calculateMaxKiLong(ki: String): Long {
+        return try {
+            val base = ki.replace(".", "").toLong()
+            (base * 1.5).toLong()
+        } catch (e: Exception) {
+            1000000000L
+        }
+    }
+
+    private fun formatNumber(number: Long): String {
+        return String.format(Locale.GERMANY, "%,d", number)
     }
 
     private fun translateRace(race: String): String {
@@ -157,6 +198,9 @@ class CharacterRepository {
             n.contains("cooler") -> listOf("Supernova", "Rayo de la Muerte")
             n.contains("broly") -> listOf("Gigantic Meteor", "Eraser Cannon")
             n.contains("gogeta") -> listOf("Rompedor de Polvo Estelar", "Big Bang Kamehameha")
+            n.contains("shenron") -> listOf("Bola de Energía Negativa", "Rayo Ígneo")
+            n.contains("piccolo") -> listOf("Makankosappo", "Regeneración", "Granada Infernal")
+            n.contains("gohan") -> listOf("Masenko", "Kamehameha Especial")
             else -> listOf("Vuelo", "Ráfaga de Ki", "Sentido del Ki")
         }
     }
